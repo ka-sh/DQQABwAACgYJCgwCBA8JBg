@@ -1,0 +1,19 @@
+{
+  "name": "fixrates",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "test"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg.git"
+  },
+  "author": "Kareem",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg/issues"
+  },
+  "homepage": "https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg#readme"
+}
