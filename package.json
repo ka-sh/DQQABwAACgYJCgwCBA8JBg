@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg/issues"
   },
-  "homepage": "https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg#readme"
+  "homepage": "https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg#readme",
+  "dependencies": {
+    "fivebeans": "^1.4.1"
+  }
 }
