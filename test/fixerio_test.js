@@ -27,7 +27,7 @@ describe('fixerio', () => {
 			}, 'InvalidCurrencyException');
 		});
 
-		it('should throw exception for unsupported currencies', () => {
+		it.only('should throw exception for unsupported currencies', () => {
 			assert.throws(() => {
 				fixerio.convert('USD', 'EGP');
 			}, 'InvalidCurrencyException');

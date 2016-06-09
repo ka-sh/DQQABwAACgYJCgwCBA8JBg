@@ -42,7 +42,7 @@ function isValidCurrencyStr(from, to) {
 
 function isSupported(from, to) {
 	from = from.toUpperCase();
-	to = from.toUpperCase();
+	to = to.toUpperCase();
 	let foundFrom = false;
 	let foundTo = false;
 	for (let i = 0; i < SUPPORTED.length; i++) {
