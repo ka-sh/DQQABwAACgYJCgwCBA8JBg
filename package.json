@@ -17,6 +17,13 @@
   },
   "homepage": "https://github.com/ka-sh/DQQABwAACgYJCgwCBA8JBg#readme",
   "dependencies": {
-    "fivebeans": "^1.4.1"
+    "fivebeans": "^1.4.1",
+    "q": "^1.4.1",
+    "request": "^2.72.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-as-promised": "^5.3.0",
+    "mocha": "^2.5.3"
   }
 }

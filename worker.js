@@ -32,15 +32,3 @@ client.watch(TUBE, function (err, unwatched) {
 client.list_tubes(function (err, tubenames) {
 	console.log(tubenames);
 });
-
-
-// client.reserve(function(err,jobID,payload){if(err){
-//   console.log("Error:",err);
-//   return;
-// }
-// console.log("ID: "+jobID);
-// console.log("Payload: "+payload);
-// client.destroy(jobID,function(err){
-//   console.log(err);
-// });
-// });
