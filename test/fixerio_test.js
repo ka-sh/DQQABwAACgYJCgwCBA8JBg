@@ -32,15 +32,9 @@ describe('fixerio', () => {
 				fixerio.convert('USD', 'EGP');
 			}, 'InvalidCurrencyException');
 		});
-
-		// it('should return a promise with valid conversion data', () => {
-		// 	assert.doesNotThrow(() => {
-		// 		fixerio.convert('usd', 'hkd');
-		// 	}, Error);
-		// });
 	});
 
-	describe.only('valid conversion requests', () => {
+	describe('valid conversion requests:integration test', () => {
 		it('should return a promise with valid conversion data', () => {
 			return fixerio.convert('USD', 'HKD')
 				.should.be.fulfilled;
