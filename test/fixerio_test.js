@@ -6,7 +6,7 @@ let chai = require('chai');
 let should = chai.should();
 chai.use(chaiAsPromised);
 
-let fixerio = require('../converters/fixerio_converter');
+let fixerio = require('../converters/fixerio');
 describe('fixerio', () => {
 	describe('request rate for bad currency', () => {
 		it('should throw exception for invalid currencies strings', () => {
@@ -27,7 +27,7 @@ describe('fixerio', () => {
 			}, 'InvalidCurrencyException');
 		});
 
-		it.only('should throw exception for unsupported currencies', () => {
+		it('should throw exception for unsupported currencies', () => {
 			assert.throws(() => {
 				fixerio.convert('USD', 'EGP');
 			}, 'InvalidCurrencyException');
