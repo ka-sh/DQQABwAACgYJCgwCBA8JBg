@@ -1,11 +1,13 @@
 'use strict';
+
 /**
  * Worker responsible of consuming incoming jobs
  * @param {object} converter that will be used to get the FX rates.
  * @constructor
  */
-let worker = function (converter) {
-	this.fx = converter;
+let worker = function (fxConverter, model) {
+	this.fx = fxConverter;
+	this.Rate = model;
 };
 
 
@@ -14,11 +16,21 @@ let worker = function (converter) {
  * @param {string}[job.key=from] - base currency.
  * @param {string}[job.key=to]   - currency to convert to.
  */
-worker.prototype.consume = (job) => {
+worker.prototype.consume = function (job) {
 	if (!isValid(job)) {
 		// Ignore invalid job
 		return;
-	}  
+	}
+	this.fx.convert(job.from, job.to)
+		.then((val) => {
+			val.created_at = new Date();
+			let rates = new this.Rate(val);
+			rates.save((err) => {
+				if (err) {
+					console.log(err);
+				}
+			});
+		});
 };
 module.exports = worker;
 

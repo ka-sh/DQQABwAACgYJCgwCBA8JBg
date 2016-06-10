@@ -12,7 +12,7 @@ fxConverter.prototype = {
 	 *Set the converter implementation.
 	 *@param {object} actual converter tat will be used to fetch prices.
 	 */
-	use: (converter) => {
+	use: function (converter) {
 		this.converter = converter;
 	},
 	/**
@@ -20,7 +20,7 @@ fxConverter.prototype = {
 	*@param {string} currency to convert from
 	*@param {string} currency to convert to
 	*/
-	convert: (from, to) => {
+	convert: function (from, to) {
 		return this.converter.convert(from, to);
 	}
 };

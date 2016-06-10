@@ -67,7 +67,12 @@ function fetchRates(from, to) {
 	let deferred = Q.defer();
 	request(url, (err, res, body) => {
 		if (!err && res.statusCode === 200) {
-			deferred.resolve(body);
+			let data = JSON.parse(body);
+			deferred.resolve({
+				from: from,
+				to: to,
+				rate: roundRates(data.rates[to])
+			});
 		} else {
 			deferred.reject(err);
 		}
@@ -78,4 +83,14 @@ function fetchRates(from, to) {
 function getUrl(from, to) {
 	// http://api.fixer.io/latest?base=USD&symbols=HKD
 	return HOST + 'base=' + from + '&symbols=' + to;
+}
+
+/**
+ *Round Rates to 2 decimal places.
+ *@param {number} conversion rates
+ *@return {string} rounded conversion rates as String
+ */
+function roundRates(rates) {
+	return (Math.round(rates * 100) / 100)
+		.toString();
 }
