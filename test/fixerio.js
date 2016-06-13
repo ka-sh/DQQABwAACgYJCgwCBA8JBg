@@ -3,16 +3,16 @@
  * Fixerio path is used @ inner test .
  * Note: In case of changing the fixerio path, please change the {string} fixerioPath.
  */
-let fixerioPath = '../converters/fixerio';
-let InvalidCurrencyException = require('../converters/invalid_currency_exception');
-let assert = require('chai')
+const fixerioPath = '../converters/fixerio';
+const InvalidCurrencyException = require('../converters/invalid_currency_exception');
+const assert = require('chai')
 	.assert;
-let chaiAsPromised = require('chai-as-promised');
-let chai = require('chai');
-let proxyquire = require('proxyquire');
+const chaiAsPromised = require('chai-as-promised');
+const chai = require('chai');
+const proxyquire = require('proxyquire');
 chai.use(chaiAsPromised);
 chai.should();
-let fixerio = require(fixerioPath);
+const fixerio = require(fixerioPath);
 describe('fixerio', () => {
 	describe('request rate for bad currency', () => {
 		it('should throw exception for invalid currencies strings', () => {
