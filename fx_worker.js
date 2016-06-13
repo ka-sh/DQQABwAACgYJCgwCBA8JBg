@@ -1,5 +1,6 @@
 'use strict';
 let Q = require('q');
+let UnsupportedCurrencyException = require('./converters/unsupported_currency_exception');
 let Rate = '';
 let fx = '';
 let successDelay = 6000;
@@ -44,16 +45,25 @@ function init(opt) {
 	}
 }
 /**
+ * consume current job.
  * @param {object} job- job parameters.
  * @param {string}[job.key=from] - base currency.
  * @param {string}[job.key=to]   - currency to convert to.
+ * @return false incase of bad request "as in job object doesn't contain key information or contain invalid currency request", return promise with result.
  */
 worker.prototype.consume = function (job) {
 	if (!isValid(job)) {
-		// Ignore invalid job
-		return;
+		return false;
 	}
-	step(job, 0, 0);
+	try {
+		return processRequest(job.from, job.to);
+	} catch (err) {
+		if (err instanceof UnsupportedCurrencyException) {
+			return false;
+		} else {
+			return Q.reject(err);
+		}
+	}
 };
 module.exports = worker;
 
@@ -65,6 +75,12 @@ function isValid(job) {
 	return job && job.from && job.to;
 }
 
+/**
+ * Process incoming job request.
+ * @param {string} base currency.
+ * @param {string} currency to convert to.
+ * @return false in case of invalid job, or promise object.
+ */
 function processRequest(from, to) {
 	return fx.convert(from, to)
 		.then((rate) => {
@@ -72,35 +88,11 @@ function processRequest(from, to) {
 		})
 		.catch((err) => {
 			return Q.reject(err);
-		})
+		});
 }
-// function step(job, successCount, failCount) {
-// 	if (successCount < maxIter && failCount < maxFailed) {
-// 		// console.log('\n\n\n');
-// 		// console.log('Step called with counts failed:', failCount, ' success: ', successCount);
-// 		fx.convert(job.from, job.to)
-// 			.fail((reason) => {
-// 				console.log('handle Request failed=>1 ', reason);
-// 				setTimeout(() => {
-// 					step(job, successCount, ++failCount);
-// 				}, failedDelay);
-// 				return Q.reject(reason);
-// 			})
-// 			.then((val) => {
-// 				console.log('Successful request ', val);
-// 				saveRate(val)
-// 					.then(() => {
-// 						console.log('Save successfull');
-// 						setTimeout(() => {
-// 							step(job, ++successCount, failCount);
-// 						}, successDelay);
-// 					}, (reason) => {
-// 						console.log('Failed to save rates: ', reason);
-// 					});
-// 			});
-// 	}
-// }
-
+/**
+ * Save rate to the DB and return a promise.
+ */
 function saveRate(rate) {
 	let deferred = Q.defer();
 	rate.created_at = new Date();

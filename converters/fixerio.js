@@ -6,7 +6,7 @@ const SUPPORTED = ['USD', 'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK'
 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'ZAR', 'EUR'];
 const CURRENCY_LENGTH = 3;
 
-let e = require('./converter_exception');
+let UnsupportedCurrencyException = require('./unsupported_currency_exception');
 let Q = require('q');
 let request = require('request');
 /**
@@ -32,7 +32,7 @@ exports.convert = (from, to) => {
  */
 function isValid(from, to) {
 	if (!isValidCurrencyStr(from, to) || !isSupported(from, to)) {
-		throw new Error(e.InvalidCurrencyException);
+		throw new UnsupportedCurrencyException('Unsupported currency request <from: ' + from + ' to: ' + to + '>');
 	}
 }
 
