@@ -6,7 +6,7 @@ const SUPPORTED = ['USD', 'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK'
 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'ZAR', 'EUR'];
 const CURRENCY_LENGTH = 3;
 
-let UnsupportedCurrencyException = require('./unsupported_currency_exception');
+let InvalidCurrencyException = require('./invalid_currency_exception');
 let Q = require('q');
 let request = require('request');
 /**
@@ -18,28 +18,28 @@ let request = require('request');
  *"RUB", "SEK", "SGD", "THB", "TRY", "ZAR", "EUR"]
  *@param {string} currency to convert from
  *@param {string} Currency to convert to
- *
+ *@throws InvalidCurrencyException incase of invalid currency fromat, or currency is not supported.
  */
 exports.convert = (from, to) => {
-	isValid(from, to);
+	isValidCurrencyStr(from, to) && isSupported(from, to);
 	return fetchRates(from.toUpperCase(), to.toUpperCase());
 };
 
 /**
- * Validate requested currencies.
- * valid if : 1- valid strings.
- *2- supported currency.
+ * Validate requested currencies format.
+ * @throws InvalidCurrencyException in case of invalid currency format.
  */
-function isValid(from, to) {
-	if (!isValidCurrencyStr(from, to) || !isSupported(from, to)) {
-		throw new UnsupportedCurrencyException('Unsupported currency request <from: ' + from + ' to: ' + to + '>');
+function isValidCurrencyStr(from, to) {
+	if (!(from && to && from.trim() && to.trim() && from.length === CURRENCY_LENGTH && to.length === CURRENCY_LENGTH)) {
+		throw new InvalidCurrencyException('Currency format is invalid: <from: ' + from + ', to: ' + to + '>');
+	} else {
+		return true;
 	}
 }
-
-function isValidCurrencyStr(from, to) {
-	return from && to && from.trim() && to.trim() && from.length === CURRENCY_LENGTH && to.length === CURRENCY_LENGTH;
-}
-
+/**
+ * Check if currency requested is supported by Fixerio api or not.
+ * @throws InvalidCurrencyException incase of currency is not supported.
+ */
 function isSupported(from, to) {
 	from = from.toUpperCase();
 	to = to.toUpperCase();
@@ -54,7 +54,11 @@ function isSupported(from, to) {
 		}
 	}
 
-	return foundTo && foundFrom;
+	if (!foundTo && foundFrom) {
+		throw new InvalidCurrencyException('Request failed for unsupported currency : <from: ' + from + ', to: ' + to + '>');
+	} else {
+		return true;
+	}
 }
 /**
  * Fetch the rates from Fixer.io and return promise.
