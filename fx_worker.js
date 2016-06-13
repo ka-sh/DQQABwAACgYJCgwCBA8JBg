@@ -1,49 +1,20 @@
 'use strict';
 let Q = require('q');
-let UnsupportedCurrencyException = require('./converters/unsupported_currency_exception');
+let InvalidCurrencyException = require('./converters/invalid_currency_exception');
 let Rate = '';
 let fx = '';
-let successDelay = 6000;
-let failedDelay = 3000;
-let maxIter = 10;
-let maxFailed = 3;
 
 /**
  * Worker responsible of consuming incoming jobs
  * @param {object} converter that will be used to get the FX rates.
  * @param {object} object model that will be used to persist records.
- * @param {object} options - contain worker parameters.
- * @param {number}[options.successDelay=60000] - set delay after every successful request.
- * @param {number}[options.failedDelay=3000] - set delay after every failed request.
- * @param {number}[options.maxIter=10] set max successful requests.
- * @param {number}[options.maxFailed=3] set max failed requests.
  * @constructor
  */
-let worker = function (fxConverter, model, options) {
+let worker = function (fxConverter, model) {
 	fx = fxConverter;
 	Rate = model;
-	init(options);
 };
 
-/**
- *Initialize current worker parameters.
- */
-function init(opt) {
-	if (opt) {
-		if (opt.successDelay) {
-			successDelay = opt.successDelay;
-		}
-		if (opt.failedDelay) {
-			failedDelay = opt.failedDelay;
-		}
-		if (opt.maxIter) {
-			maxIter = opt.maxIter;
-		}
-		if (opt.maxFailed) {
-			maxFailed = opt.maxFailed;
-		}
-	}
-}
 /**
  * consume current job.
  * @param {object} job- job parameters.
@@ -53,16 +24,13 @@ function init(opt) {
  */
 worker.prototype.consume = function (job) {
 	if (!isValid(job)) {
-		return false;
+		return Q.reject(new InvalidCurrencyException('job sent with undefined elements: ', job));
 	}
 	try {
 		return processRequest(job.from, job.to);
 	} catch (err) {
-		if (err instanceof UnsupportedCurrencyException) {
-			return false;
-		} else {
-			return Q.reject(err);
-		}
+		console.log(err);
+		Q.reject(err);
 	}
 };
 module.exports = worker;

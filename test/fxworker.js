@@ -7,69 +7,97 @@ const chaiAsPromised = require('chai-as-promised');
 const assert = chai.assert;
 const fixerio = require('../converters/fixerio');
 const fx = require('../converters/fx');
-let stubconvert = '';
-let sandbox = '';
+const InvalidCurrencyException = require('../converters/invalid_currency_exception');
+
 chai.use(chaiAsPromised);
 chai.should();
 
 
 describe('worker test', () => {
+	let sandbox = '';
 	afterEach(() => {
 		sandbox.restore();
 	});
 	beforeEach(() => {
 		sandbox = sinon.sandbox.create();
 	});
+	describe('Invalid job', () => {
+		it('should return rejected promise with value of InvalidCurrencyException if job is undefined', (done) => {
+			let worker = new Worker(fx, undefined);
+			worker.consume(undefined)
+				.should.be.rejectedWith(InvalidCurrencyException)
+				.notify(done);
+		});
 
-	// describe('FX request failur handling', () => {
-	// 	afterEach(function (done) {
-	// 		// TODO:I don't like this I need to change it so that the test wouldn't depend on timeouts.
-	// 		setTimeout(() => {
-	// 			sinon.assert.calledOnce(stubconvert);
-	// 			done();
-	// 		}, 1500);
-	// 	});
-	// 	it('should resend request 3 times max incase of failed fx request', () => {
-	// 		stubconvert = sandbox.stub(fx, 'convert')
-	// 			.returns(Q.reject('stubed reject promise'));
-	// 		let worker = new Worker(fx, undefined, {
-	// 			failedDelay: 100
-	// 		});
-	// 		worker.consume({
-	// 				from: 'USD',
-	// 				to: 'HKD'
-	// 			})
-	// 			.should.be.rejected;
-	// 	});
-	// });
-	describe('Handling DB error', () => {
-		/**
-		 * There are two types of errors that I am expecting here.
-		 * 1- connection related issues which the instance should end with throwing exception.
-		 * 2- persistance issues which I will just log for now.
-		 */
-		it('Should terminate when connection issue with DB', () => {
+		it('should return rejected promise with InvalidCurrencyException if from field is undefined', (done) => {
+			let worker = new Worker(fx, undefined);
+			worker.consume({
+				from: undefined,
+				to: 'USD'
+			})
+				.should.be.rejectedWith(InvalidCurrencyException)
+				.notify(done);
+		});
 
+		it('should return rejected promise with InvalidCurrencyException if to field is undefined', (done) => {
+			let worker = new Worker(fx, undefined);
+			worker.consume({
+				from: 'USD',
+				to: undefined
+			})
+				.should.be.rejectedWith(InvalidCurrencyException)
+				.notify(done);
 		});
 	});
-	describe('Worker handling bad currency', () => {
-		afterEach(function (done) {
-			// TODO:I don't like this I need to change it so that the test wouldn't depend on timeouts.
-			setTimeout(() => {
-				done();
-			}, 1500);
+	describe('Failed request', () => {
+		let fxStub = '';
+		afterEach((done) => {
+			sinon.assert.calledOnce(fxStub);
+			done();
 		});
-		it('should terminate incase of InvalidCurrencyException', () => {
-			fx.use(fixerio);
-			let worker = new Worker(fx, undefined, {
-				failedDelay: 100
+		it('should return rejected promise if request for rates failed', () => {
+			fxStub = sandbox.stub(fx, 'convert', () => {
+				return Q.reject('stub reject promise');
 			});
-			assert.throws(() => {
-				worker.consume({
+			let worker = new Worker(fx, undefined);
+			return worker.consume({
+				from: 'USD',
+				to: 'HKD'
+			})
+				.should.be.rejected;
+		});
+	});
+
+	describe('Failed to persist rates', () => {
+		let fxStub = '';
+		let modelStub = '';
+		afterEach((done) => {
+			sinon.assert.calledOnce(fxStub);
+			sinon.assert.calledOnce(modelStub);
+			done();
+		});
+		it('should return rejected promise if cannot persist rates', () => {
+			fxStub = sandbox.stub(fx, 'convert', () => {
+				return Q.resolve({
 					from: 'USD',
-					to: 'HKDXXXX'
+					to: 'HKD',
+					rate: '7.93'
 				});
-			}, 'InvalidCurrencyException');
+			});
+			modelStub = sandbox.stub()
+				.returns({
+					save: function (callback) {
+						process.nextTick(function () {
+							callback(new Error('failed to persist rates'));
+						});
+					}
+				});
+			let worker = new Worker(fx, modelStub);
+			return worker.consume({
+				from: 'USD',
+				to: 'HKD'
+			})
+				.should.be.rejected;
 		});
 	});
 });

@@ -40,7 +40,7 @@ describe('fixerio', () => {
 		});
 	});
 
-	describe.only('valid conversion requests', () => {
+	describe('valid conversion requests', () => {
 		it('should return a promise with valid conversion data', () => {
 			let fixerioStub = proxyquire(fixerioPath, {
 				'request': function (url, cb) {
