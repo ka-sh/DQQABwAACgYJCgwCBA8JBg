@@ -1,6 +1,6 @@
 'use strict';
-let Q = require('q');
-let InvalidCurrencyException = require('./converters/invalid_currency_exception');
+const Q = require('q');
+const InvalidCurrencyException = require('./converters/invalid_currency_exception');
 let Rate = '';
 let fx = '';
 
@@ -29,15 +29,14 @@ worker.prototype.consume = function (job) {
 	try {
 		return processRequest(job.from, job.to);
 	} catch (err) {
-		console.log(err);
-		Q.reject(err);
+		return Q.reject(err);
 	}
 };
 module.exports = worker;
 
 
 /**
- * Simple validation for job
+ * Simple validation for incoming job object
  */
 function isValid(job) {
 	return job && job.from && job.to;
@@ -60,6 +59,7 @@ function processRequest(from, to) {
 }
 /**
  * Save rate to the DB and return a promise.
+ *TODO:Extract the logic into Rate module.
  */
 function saveRate(rate) {
 	let deferred = Q.defer();

@@ -6,9 +6,9 @@ const SUPPORTED = ['USD', 'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK'
 'RUB', 'SEK', 'SGD', 'THB', 'TRY', 'ZAR', 'EUR'];
 const CURRENCY_LENGTH = 3;
 
-let InvalidCurrencyException = require('./invalid_currency_exception');
-let Q = require('q');
-let request = require('request');
+const InvalidCurrencyException = require('./invalid_currency_exception');
+const Q = require('q');
+const request = require('request');
 /**
  *Convert @from currency to @to currency using fixer.io api.
  *Only support the following currencies :
@@ -83,7 +83,11 @@ function fetchRates(from, to) {
 	});
 	return deferred.promise;
 }
-
+/*
+ *Generate fixerio url.
+ * @param from {string} base currency
+ * @param from {string} symbol currency
+ */
 function getUrl(from, to) {
 	// http://api.fixer.io/latest?base=USD&symbols=HKD
 	return HOST + 'base=' + from + '&symbols=' + to;

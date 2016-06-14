@@ -17,6 +17,9 @@ const DEFAULT_TTR = 30;
 let Rate = '';
 let config = {};
 let client = '';
+/*
+ *
+ */
 let clientProducer = '';
 let worker = '';
 /**
@@ -48,18 +51,22 @@ function setupBSClient() {
 
 	clientProducer.use(config.bs_tube, (err, tubenam) => {
 		if (err) {
-			console.log('Error while trying to use tube ', tubename, ': ', err);
+			console.log('Error while trying to use tube ', tubenam, ': ', err);
 		}
 	});
 }
-
+/*
+ * Start consuming incoming job requests of the queue.
+ */
 function consume() {
 	client.reserve(function (err, jobid, payload) {
 		console.log('Consuming jobid ', jobid, '==>>', payload);
 		if (err) {
 			console.log('error:', err);
 		}
-
+		/**
+		 * Fivebeans sends DEADLINE_SOON message through the queue with empty payload, so I need to check for payload before processing the request.
+		 */
 		// TODO: validate payload
 		if (payload) {
 			let payloadJSON = JSON.parse(payload.toString());
@@ -68,11 +75,10 @@ function consume() {
 			worker.consume(payloadJSON)
 				.then((val) => {
 					++payloadJSON.successCount;
-					payload = JSON.stringify(payloadJSON);
 					return tryResubmit(payloadJSON, jobid, SUCESS_DELAY);
 				})
 				.fail((reason) => {
-					console.log('REquest failed to process: ', reason);
+					console.log('Request failed to process: ', reason);
 					++payloadJSON.failCount;
 					return tryResubmit(payloadJSON, jobid, FAIL_DELAY);
 				})
@@ -82,11 +88,22 @@ function consume() {
 		}
 	});
 }
-
+/**
+ * Check if we should resubmit this payload or not by checking the success,
+ * and fail count aganist the MAX_SUCCESS, and MAX_FAIL counts.
+ * @param {object} payload as a JSON object.
+ */
 function shouldReSubmit(payloadJSON) {
 	return payloadJSON.successCount < MAX_SUCCESS && payloadJSON.failCount < MAX_FAIL;
 }
-
+/**
+ * Try to put the job back on the queue.
+ * in this step we first delete the job off the queue, then we put back the updated payload.
+ * @param {object} payload as a JSON object.
+ * @param {string} jobid to resubmit.
+ * @param {number} delay in seconds.
+ * @return {object} promise with process result.
+ */
 function tryResubmit(payloadJSON, jobid, delay) {
 	deleteJob(jobid)
 		.then(() => {
@@ -96,23 +113,19 @@ function tryResubmit(payloadJSON, jobid, delay) {
 			return Q.resolve(jobid);
 		})
 		.fail((e) => {
+			//	TODO: this is looks much like an exception inside an exception case.
+			//  			I will stick to doing nothing since the job is already deleted from the queue.
 			console.log('fail to resubmit job to the queue jobID: ', jobid);
 			console.log('Error:', e);
 		});
 }
 
-function release(jobid, delay) {
-	let deferred = Q.defer();
-	client.release(jobid, DEFAULT_PERIORITY, delay, (err) => {
-		if (err) {
-			deferred.reject(err);
-		} else {
-			deferred.resolve(jobid);
-		}
-	});
-	return deferred.promise;
-}
 
+/**
+ * Delete a job from the queue
+ * @param {string} job id.
+ * @return {object} promise with the process result.
+ */
 function deleteJob(jobid) {
 	let deferred = Q.defer();
 	client.destroy(jobid, (e) => {
@@ -124,10 +137,14 @@ function deleteJob(jobid) {
 	});
 	return deferred.promise;
 }
-
+/**
+ * Put the updated payload back to the queue.
+ * @param {object} payload as a JSON object.
+ * @param {number} delay in seconds.
+ * @return {object} return promise with the process result.
+ */
 function putJob(payloadJSON, delay) {
 	let payload = JSON.stringify(payloadJSON);
-	console.log('Putting back ==>>>>', payload);
 	let deferred = Q.defer();
 	clientProducer.put(DEFAULT_PERIORITY, delay, DEFAULT_TTR, payload, function (e, jid) {
 		if (e) {
@@ -150,19 +167,6 @@ function validateCounts(payload) {
 	}
 }
 
-// function consume() {
-// 	client.reserve(function (err, jobid, payload) {
-// 		console.log('Job recieved: ', payload.toString());
-// 		setTimeout(() => {
-// 			client.destroy(jobid, (e) => {
-// 				if (e) {
-// 					console.log('Error while trying to delete job :', e);
-// 				}
-// 				consume();
-// 			});
-// 		}, 500);
-// 	});
-// }
 /**
  * Initialize mongodb connection
  */
@@ -181,7 +185,10 @@ function initMongo() {
 function loadConfig() {
 	return JSON.parse(fs.readFileSync('config.json'));
 }
-
+/*
+*Initialize beanstalk client object.
+*@return {object} beanstalk client object.
+*/
 function initBSClient() {
 	let bsClient = new fivebeans.client(config.bs_host, config.bs_port);
 	bsClient.on('connect', function () {
