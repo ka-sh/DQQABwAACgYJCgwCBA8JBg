@@ -3,16 +3,18 @@ const Q = require('q');
 const InvalidCurrencyException = require('./converters/invalid_currency_exception');
 let Rate = '';
 let fx = '';
-
+let ttr = '';
 /**
  * Worker responsible of consuming incoming jobs
  * @param {object} converter that will be used to get the FX rates.
  * @param {object} object model that will be used to persist records.
+ * @param {number} how long process should run before it times out.
  * @constructor
  */
-let worker = function (fxConverter, model) {
+let worker = function (fxConverter, model, timeout) {
 	fx = fxConverter;
 	Rate = model;
+	ttr = timeout;
 };
 
 /**
@@ -27,7 +29,7 @@ worker.prototype.consume = function (job) {
 		return Q.reject(new InvalidCurrencyException('job sent with undefined elements: ', job));
 	}
 	try {
-		return processRequest(job.from, job.to);
+		return Q.timeout(processRequest(job.from, job.to), ttr);
 	} catch (err) {
 		return Q.reject(err);
 	}
