@@ -1,0 +1,8 @@
+{
+  "bs_host":"127.0.0.1",
+  "bs_port":"11300",
+  "bs_tube":"ka-sh",
+  "db_host":"127.0.0.1",
+  "database":"aftership",
+  "collection":"rate"
+}

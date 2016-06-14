@@ -19,6 +19,7 @@
   "dependencies": {
     "fivebeans": "^1.4.1",
     "mongoose": "^4.4.20",
+    "nodestalker": "^0.1.21",
     "q": "^1.4.1",
     "request": "^2.72.0"
   },
