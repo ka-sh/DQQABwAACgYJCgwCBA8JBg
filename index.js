@@ -17,6 +17,7 @@ const DEFAULT_TTR = 30;
 let Rate = '';
 let config = {};
 let client = '';
+let clientProducer = '';
 let worker = '';
 /**
  * Entry point
@@ -34,24 +35,20 @@ function start() {
  * Setting up fivebeans client. This is the entry point for the worker to start consuming jobs of the queue
  */
 function setupBSClient() {
-	client = new fivebeans.client(config.bs_host, config.bs_port);
-	client.on('connect', function () {
-			console.log('Connected');
-		})
-		.on('error', function (err) {
-			console.log('Error: ', err);
-		})
-		.on('close', function () {
-			console.log('Closed');
-		})
-		.connect();
-
+	client = initBSClient();
+	clientProducer = initBSClient();
 	client.watch(config.bs_tube, function (err, numwatched) {
 		if (err) {
 			console.log('Error: ', err);
 		} else {
 			console.log('number of tubes watched: ', numwatched);
 			consume();
+		}
+	});
+
+	clientProducer.use(config.bs_tube, (err, tubenam) => {
+		if (err) {
+			console.log('Error while trying to use tube ', tubename, ': ', err);
 		}
 	});
 }
@@ -71,6 +68,7 @@ function consume() {
 			worker.consume(payloadJSON)
 				.then((val) => {
 					++payloadJSON.successCount;
+					payload = JSON.stringify(payloadJSON);
 					return tryResubmit(payloadJSON, jobid, SUCESS_DELAY);
 				})
 				.fail((reason) => {
@@ -103,6 +101,18 @@ function tryResubmit(payloadJSON, jobid, delay) {
 		});
 }
 
+function release(jobid, delay) {
+	let deferred = Q.defer();
+	client.release(jobid, DEFAULT_PERIORITY, delay, (err) => {
+		if (err) {
+			deferred.reject(err);
+		} else {
+			deferred.resolve(jobid);
+		}
+	});
+	return deferred.promise;
+}
+
 function deleteJob(jobid) {
 	let deferred = Q.defer();
 	client.destroy(jobid, (e) => {
@@ -119,7 +129,7 @@ function putJob(payloadJSON, delay) {
 	let payload = JSON.stringify(payloadJSON);
 	console.log('Putting back ==>>>>', payload);
 	let deferred = Q.defer();
-	client.put(DEFAULT_PERIORITY, delay, DEFAULT_TTR, payload, function (e, jid) {
+	clientProducer.put(DEFAULT_PERIORITY, delay, DEFAULT_TTR, payload, function (e, jid) {
 		if (e) {
 			deferred.reject(e);
 		} else {
@@ -170,4 +180,19 @@ function initMongo() {
  */
 function loadConfig() {
 	return JSON.parse(fs.readFileSync('config.json'));
+}
+
+function initBSClient() {
+	let bsClient = new fivebeans.client(config.bs_host, config.bs_port);
+	bsClient.on('connect', function () {
+		console.log('Connected');
+	})
+		.on('error', function (err) {
+			console.log('Error: ', err);
+		})
+		.on('close', function () {
+			console.log('Closed');
+		})
+		.connect();
+	return bsClient;
 }
