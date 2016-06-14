@@ -41,7 +41,7 @@ node server_status
 ```
 ######cleanerService
 
-Nop not the French one!!. purge all jobs on beanstalkd server submitted on bs_tube <check config.json>
+Nop not the French one!!. purge all jobs on beanstalkd server submitted on bs_tube =>> check config.json
 
 ```
 node cleanerService
@@ -50,7 +50,7 @@ Note: after you are finished you need to CTRL+C, I know ugly but does the job.
 
 ######Producer
 
-Continuously generating random requests every 10 sec for fetching conversion rates, and submit them to bs_tube <check config.json>
+Continuously generating random requests every 10 sec for fetching conversion rates, and submit them to bs_tube =>> check config.json
 
 ```
 node producer
