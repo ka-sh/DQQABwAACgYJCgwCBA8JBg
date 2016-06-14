@@ -1,6 +1,7 @@
 'use strict';
 const Q = require('q');
 const InvalidCurrencyException = require('./converters/invalid_currency_exception');
+const DEFAULT_TIMEOUT = 10000;
 let Rate = '';
 let fx = '';
 let ttr = '';
@@ -14,7 +15,11 @@ let ttr = '';
 let worker = function (fxConverter, model, timeout) {
 	fx = fxConverter;
 	Rate = model;
-	ttr = timeout;
+	if (!timeout) {
+		ttr = DEFAULT_TIMEOUT;
+	} else {
+		ttr = timeout;
+	}
 };
 
 /**
