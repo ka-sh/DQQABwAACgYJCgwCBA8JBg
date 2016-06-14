@@ -24,7 +24,11 @@ mongodb
 1- Configure beanstalkd server and ports in the config.json.
 
 
-2- node index to start a worker instance.
+2- to start a worker instance.
+
+```
+node index
+```
 
 Note: you can start more than one worker instance to help reduce the load.
 
