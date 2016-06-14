@@ -8,7 +8,7 @@ const Worker = require('./fx_worker');
 const Q = require('q');
 fx.use(fixerio);
 const DEFAULT_PERIORITY = 5;
-const SUCESS_DELAY = 5;
+const SUCESS_DELAY = 60;
 const FAIL_DELAY = 3;
 const MAX_SUCCESS = 10;
 const MAX_FAIL = 3;
@@ -18,7 +18,7 @@ let Rate = '';
 let config = {};
 let client = '';
 /*
- *
+ * used to put jobs back to the tube.
  */
 let clientProducer = '';
 let worker = '';
