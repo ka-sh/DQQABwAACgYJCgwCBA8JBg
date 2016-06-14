@@ -5,9 +5,7 @@
 ####ABOUT
 This is a POC of building worker services that consume requests for getting conversion currency rates.
 
-
 Currently support the following currencies only:
-
 
 ['USD', 'AUD', 'BGN', 'BRL', 'CAD', 'CHF', 'CNY', 'CZK', 'DKK',
 'GBP', 'HKD', 'HRK', 'HUF', 'IDR', 'ILS', 'INR', 'JPY',
